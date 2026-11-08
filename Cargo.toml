@@ -1,0 +1,119 @@
+[package]
+name = "hello_rust"
+version = "0.1.0"
+edition = "2024"
+default-run = "hello_rust"
+
+[[bin]]
+name = "hello_rust"
+path = "Модуль 1/1.1_Знакомство_с_языком_Rust.rs"
+
+[[bin]]
+name = "environment"
+path = "Модуль 1/1.2_Подготовка_рабочего_окружения.rs"
+
+[[bin]]
+name = "architecture"
+path = "Модуль 1/1.3_Основы_архитектуры_компьютера.rs"
+
+[[bin]]
+name = "data_types"
+path = "Модуль 2/2.1_Типы_данных.rs"
+
+[[bin]]
+name = "variables"
+path = "Модуль 2/2.1_Переменные.rs"
+
+[[bin]]
+name = "functions"
+path = "Модуль 2/2.1_Функции.rs"
+
+[[bin]]
+name = "tuples"
+path = "Модуль 2/2.2_Кортежи.rs"
+
+[[bin]]
+name = "structs"
+path = "Модуль 2/2.2_Структуры.rs"
+
+[[bin]]
+name = "enums"
+path = "Модуль 2/2.2_Перечисления.rs"
+
+[[bin]]
+name = "branching"
+path = "Модуль 2/2.3_Ветвление.rs"
+
+[[bin]]
+name = "loops"
+path = "Модуль 2/2.3_Циклы.rs"
+
+[[bin]]
+name = "practice_2_4"
+path = "Модуль 2/2.4_Практика.rs"
+
+[[bin]]
+name = "resources"
+path = "Модуль 2/2.5_Управление_ресурсами.rs"
+
+[[bin]]
+name = "cloning"
+path = "Модуль 2/2.5_Клонирование.rs"
+
+[[bin]]
+name = "copy_trait"
+path = "Модуль 2/2.5_Трейт_Copy.rs"
+
+[[bin]]
+name = "ownership_concept"
+path = "Модуль 2/2.5_Концепция_владения.rs"
+
+[[bin]]
+name = "ownership_borrowing"
+path = "Модуль 2/2.6_Владение_и_заимствование.rs"
+
+[[bin]]
+name = "practice_2_7"
+path = "Модуль 2/2.7_Практика_Владение_и_заимствование.rs"
+
+[[bin]]
+name = "slices"
+path = "Модуль 2/2.8_Слайсы.rs"
+
+[[bin]]
+name = "arrays"
+path = "Модуль 2/2.8_Массивы.rs"
+
+[[bin]]
+name = "strings"
+path = "Модуль 2/2.8_Строки.rs"
+
+[[bin]]
+name = "struct_models"
+path = "Модуль 2/2.9_Структуры.rs"
+
+[[bin]]
+name = "struct_methods"
+path = "Модуль 2/2.9_Методы.rs"
+
+[[bin]]
+name = "struct_encapsulation"
+path = "Модуль 2/2.9_Инкапсуляция.rs"
+
+[[bin]]
+name = "delivery_enums"
+path = "Модуль 2/2.10_Перечисления.rs"
+
+[[bin]]
+name = "pattern_matching"
+path = "Модуль 2/2.10_Pattern_matching.rs"
+
+[[bin]]
+name = "practice_2_11"
+path = "Модуль 2/2.11_Практика_Структуры_и_методы_Перечисления_и_pattern_matching.rs"
+
+[[bin]]
+name = "type_system_intro"
+path = "Модуль 2/2.12_Введение_в_систему_типов_Result_Option_().rs"
+
+[dependencies]

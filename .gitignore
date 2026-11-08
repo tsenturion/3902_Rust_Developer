@@ -1,0 +1,19 @@
+AGENTS.md
+AGENTS.override.md
+
+/Материалы преподавателя/
+
+# Артефакты сборки и форматирования Rust
+target/
+*.exe
+*.pdb
+*.rs.bk
+
+# Локальные настройки редакторов
+/.vscode/
+/.idea/
+
+# Служебные файлы Windows и Microsoft Office
+Thumbs.db
+[Dd]esktop.ini
+~$*
