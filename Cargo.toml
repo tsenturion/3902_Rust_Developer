@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 default-run = "hello_rust"
 
+[lib]
+name = "course_macros"
+path = "Модуль 4/4.9_Процедурные_макросы.rs"
+proc-macro = true
+
 [[bin]]
 name = "hello_rust"
 path = "Модуль 1/1.1_Знакомство_с_языком_Rust.rs"
@@ -167,5 +172,100 @@ path = "Модуль 3/3.6_Big_O_нотация.rs"
 [[bin]]
 name = "hash_map_and_vector"
 path = "Модуль 3/3.6_Хэш-мэп_и_вектор.rs"
+
+[[bin]]
+name = "collection_iterators"
+path = "Модуль 3/3.7_Итераторы.rs"
+
+[[bin]]
+name = "collections_reconciliation"
+path = "Модуль 3/3.7_Коллекции.rs"
+
+[[bin]]
+name = "practice_3_8"
+path = "Модуль 3/3.8_Практика_Коллекции_и_итераторы.rs"
+
+[[bin]]
+name = "function_composition"
+path = "Модуль 3/3.9_Функции_и_лямбда-выражения.rs"
+
+[[bin]]
+name = "heap_memory"
+path = "Модуль 4/4.1_Работа_с_кучей.rs"
+
+[[bin]]
+name = "smart_pointers_raii"
+path = "Модуль 4/4.1_Box_Arc_Rc_RAII.rs"
+
+[[bin]]
+name = "threads_send_sync"
+path = "Модуль 4/4.2_Потоки_создание_и_запуск_Send_и_Sync.rs"
+
+[[bin]]
+name = "closures_and_threads"
+path = "Модуль 4/4.3_Лямбды_и_потоки.rs"
+
+[[bin]]
+name = "move_and_arc"
+path = "Модуль 4/4.3_Использование_move_и_Arc.rs"
+
+[[bin]]
+name = "mutex_booking"
+path = "Модуль 4/4.4_Mutex.rs"
+
+[[bin]]
+name = "atomic_operations"
+path = "Модуль 4/4.4_Atomic.rs"
+
+[[bin]]
+name = "practice_4_5"
+path = "Модуль 4/4.5_Практика_Потоки_куча_Mutex_и_Atomic.rs"
+
+[[bin]]
+name = "interior_mutability"
+path = "Модуль 4/4.6_Внутренняя_изменяемость_(interior_mutability).rs"
+
+[[bin]]
+name = "build_project"
+path = "Модуль 4/4.7_Сборка_проекта.rs"
+
+[[bin]]
+name = "module_organization"
+path = "Модуль 4/4.7_Организация_модулей.rs"
+
+[[bin]]
+name = "advanced_syntax"
+path = "Модуль 4/4.8_Продвинутые_элементы_синтаксиса.rs"
+
+[[bin]]
+name = "declarative_macros"
+path = "Модуль 4/4.9_Декларативные_макросы.rs"
+
+[[bin]]
+name = "procedural_macros"
+path = "Модуль 4/4.9_Применение_процедурных_макросов.rs"
+
+[[bin]]
+name = "async_operations"
+path = "Модуль 4/4.10_Асинхронность.rs"
+
+[[bin]]
+name = "event_loop"
+path = "Модуль 4/4.10_Event_Loop.rs"
+
+[[bin]]
+name = "c10k"
+path = "Модуль 4/4.10_Проблема_10k_соединений.rs"
+
+[[bin]]
+name = "async_await"
+path = "Модуль 4/4.10_async_await.rs"
+
+[features]
+build-report = []
+
+[profile.checked-release]
+inherits = "release"
+debug-assertions = true
 
 [dependencies]
