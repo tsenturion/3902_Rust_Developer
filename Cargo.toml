@@ -116,4 +116,56 @@ path = "Модуль 2/2.11_Практика_Структуры_и_методы_
 name = "type_system_intro"
 path = "Модуль 2/2.12_Введение_в_систему_типов_Result_Option_().rs"
 
+[[bin]]
+name = "closures_intro"
+path = "Модуль 2/2.13_Введение_в_лямбда-выражения.rs"
+
+[[bin]]
+name = "error_handling"
+path = "Модуль 2/2.14_Обработка_ошибок_Оператор_вопросительного_знака_работа_с_Result_и_Option.rs"
+
+[[bin]]
+name = "practice_2_15"
+path = "Модуль 2/2.15_Практика_Работа_с_Result_и_Option.rs"
+
+[[bin]]
+name = "generic_programming"
+path = "Модуль 3/3.1_Обобщённое_программирование.rs"
+
+[[bin]]
+name = "static_dispatch"
+path = "Модуль 3/3.1_Статический_полиморфизм.rs"
+
+[[bin]]
+name = "lifetimes"
+path = "Модуль 3/3.2_Времена_жизни_(lifetimes).rs"
+
+[[bin]]
+name = "trait_composition"
+path = "Модуль 3/3.3_Наследование_и_обобщённое_программирование.rs"
+
+[[bin]]
+name = "dynamic_dispatch"
+path = "Модуль 3/3.4_Динамический_полиморфизм.rs"
+
+[[bin]]
+name = "dyn_trait_any"
+path = "Модуль 3/3.4_dyn_Trait_dyn_Any.rs"
+
+[[bin]]
+name = "practice_3_5"
+path = "Модуль 3/3.5_Практика_Обобщённое_программирование.rs"
+
+[[bin]]
+name = "collections_intro"
+path = "Модуль 3/3.6_Коллекции.rs"
+
+[[bin]]
+name = "big_o"
+path = "Модуль 3/3.6_Big_O_нотация.rs"
+
+[[bin]]
+name = "hash_map_and_vector"
+path = "Модуль 3/3.6_Хэш-мэп_и_вектор.rs"
+
 [dependencies]

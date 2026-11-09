@@ -13,8 +13,9 @@ struct ExportProfile {
 /*
 Из общего профиля экспорта нужно получить настройки предпросмотра.
 У предпросмотра своя папка, суффикс имени и частота кадров.
-Для архива требуется только отдельное имя. Перед следующим заданием
-рабочий профиль нужно восстановить из шаблона.
+Для архива требуется только отдельное имя. Настроенный предпросмотр
+нужно сохранить для заявки в очереди, а перед следующим заданием
+восстановить рабочий профиль из шаблона.
 */
 fn main() {
     let template = ExportProfile {
@@ -24,7 +25,7 @@ fn main() {
         captions: true,
     };
 
-    // derive(Clone) клонирует поля профиля по отдельности.
+    // derive(Clone) клонирует поля профиля по отдельности; строки можно менять независимо.
     let mut working_profile = template.clone();
     working_profile.directory.push_str("/preview");
     working_profile.file_stem.push_str("-preview");
@@ -53,8 +54,15 @@ fn main() {
     assert_eq!(template.file_stem, "lesson-02");
     println!("Имя для архива — {archive_file_stem}.mp4");
 
+    // Заявка в очереди сохраняет настройки предпросмотра перед восстановлением.
+    let queued_profile = working_profile.clone();
+
     // clone_from заменяет содержимое существующего рабочего профиля.
     working_profile.clone_from(&template);
+    assert_eq!(queued_profile.directory, "exports/course/preview");
+    assert_eq!(queued_profile.file_stem, "lesson-02-preview");
+    assert_eq!(queued_profile.frames_per_second, 15);
+    assert!(!queued_profile.captions);
     assert_eq!(working_profile.directory, template.directory);
     assert_eq!(working_profile.file_stem, template.file_stem);
     assert_eq!(
@@ -62,6 +70,20 @@ fn main() {
         template.frames_per_second
     );
     assert_eq!(working_profile.captions, template.captions);
+    println!(
+        "Заявка в очереди — {}/{}.mp4, {} кадров/с, субтитры — {}",
+        queued_profile.directory,
+        queued_profile.file_stem,
+        queued_profile.frames_per_second,
+        queued_profile.captions
+    );
+    println!(
+        "Рабочий профиль — {}/{}.mp4, {} кадров/с, субтитры — {}",
+        working_profile.directory,
+        working_profile.file_stem,
+        working_profile.frames_per_second,
+        working_profile.captions
+    );
     println!("Профиль для следующего задания восстановлен из шаблона.");
 
     // Источник clone_from должен иметь тип ExportProfile.

@@ -35,6 +35,12 @@ fn main() {
     assert_eq!(original_plan, (2_700, 2_820, true));
     assert_eq!(preview_plan, (2_700, 2_730, false));
 
+    // Функция меняет собственную копию и возвращает вариант для анонса.
+    let teaser = limit_duration(preview, 10);
+    assert_eq!(preview.duration_seconds, 30);
+    assert_eq!(teaser.duration_seconds, 10);
+    assert_eq!(export_plan(teaser), (2_700, 2_710, false));
+
     // Кортеж из чисел и bool тоже поддерживает Copy.
     let mut delayed_preview = preview_plan;
     let delay_seconds = 5;
@@ -49,12 +55,21 @@ fn main() {
     println!("Исходный клип — {original_start}..{original_end} с, субтитры — {original_captions}");
     println!("Предпросмотр — {preview_start}..{preview_end} с, субтитры — {preview_captions}");
     println!("Предпросмотр с задержкой — {delayed_start}..{delayed_end} с");
+    println!(
+        "Ограничение в функции — предпросмотр {} с, анонс {} с",
+        preview.duration_seconds, teaser.duration_seconds
+    );
 }
 
 fn export_plan(window: ClipWindow) -> (u64, u64, bool) {
     let start_seconds = u64::from(window.start_seconds);
     let end_seconds = start_seconds + u64::from(window.duration_seconds);
     (start_seconds, end_seconds, window.captions)
+}
+
+fn limit_duration(mut window: ClipWindow, max_seconds: u16) -> ClipWindow {
+    window.duration_seconds = window.duration_seconds.min(max_seconds);
+    window
 }
 
 // Для Copy требуется Clone.

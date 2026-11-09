@@ -51,6 +51,31 @@ fn main() {
 
     // Имя output_path доступно только во внутреннем блоке.
     // println!("{output_path}");
+
+    let mut next_job = ExportJob {
+        lesson_number: 3,
+        output_path: String::from("exports/course/lesson-03"),
+    };
+    let sent_job = prepare_export(next_job);
+
+    // После перемещения в изменяемую привязку можно записать новую заявку.
+    next_job = ExportJob {
+        lesson_number: 4,
+        output_path: String::from("exports/course/lesson-04"),
+    };
+    let sent_path = sent_job.output_path;
+    assert_eq!(sent_job.lesson_number, 3);
+    assert_eq!(sent_path, "exports/course/lesson-03.mp4");
+    assert_eq!(next_job.lesson_number, 4);
+    assert_eq!(next_job.output_path, "exports/course/lesson-04");
+    println!(
+        "После извлечения пути доступен номер занятия {} — {sent_path}",
+        sent_job.lesson_number
+    );
+    println!(
+        "Новая заявка в той же переменной — занятие {}, {}",
+        next_job.lesson_number, next_job.output_path
+    );
 }
 
 fn prepare_export(mut job: ExportJob) -> ExportJob {

@@ -150,4 +150,39 @@ fn main() {
         current.available,
         current.reserved
     );
+
+    // Изменение публичного поля снимка не меняет закрытые данные склада.
+    let mut detached = item.snapshot();
+    detached.on_hand = 0;
+    assert_eq!(detached.on_hand, 0);
+    assert_eq!(item.snapshot().on_hand, 15);
+    println!(
+        "{} — в изменённом снимке {}, на складе {}",
+        item.sku(),
+        detached.on_hand,
+        item.snapshot().on_hand
+    );
+
+    // Резерв тоже занимает место в общем остатке при приёмке.
+    let mut limit_item = warehouse::WarehouseItem::new("LIMIT-001", u32::MAX - 1);
+    assert!(limit_item.try_reserve(1));
+    let before_receive = limit_item.snapshot();
+    assert_eq!(before_receive.available, u32::MAX - 2);
+    assert_eq!(before_receive.reserved, 1);
+    let receive_two = limit_item.try_receive(2);
+    assert!(!receive_two);
+    assert_eq!(limit_item.snapshot().on_hand, u32::MAX - 1);
+    let receive_one = limit_item.try_receive(1);
+    assert!(receive_one);
+    let at_limit = limit_item.snapshot();
+    assert_eq!(at_limit.on_hand, u32::MAX);
+    assert_eq!(at_limit.available, u32::MAX - 1);
+    assert_eq!(at_limit.reserved, 1);
+    println!(
+        "{} — приёмка 2 ед. {}, приёмка 1 ед. {}, общий остаток {}",
+        limit_item.sku(),
+        receive_two,
+        receive_one,
+        at_limit.on_hand
+    );
 }

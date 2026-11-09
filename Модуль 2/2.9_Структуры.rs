@@ -76,6 +76,31 @@ fn main() {
         item.sku, revised.boxes_to_order
     );
 
+    // Меняем правило пополнения, сохраняя те же складские данные.
+    let minimum_22 = RestockPolicy {
+        minimum_free: 22,
+        ..policy
+    };
+    let minimum_23 = RestockPolicy {
+        minimum_free: 23,
+        ..policy
+    };
+    let exact_box = plan_restock(&item, &minimum_22);
+    let next_box = plan_restock(&item, &minimum_23);
+    assert_eq!(
+        (exact_box.shortage_to_minimum, exact_box.units_to_order),
+        (2, 12)
+    );
+    assert_eq!(
+        (next_box.shortage_to_minimum, next_box.units_to_order),
+        (3, 24)
+    );
+    assert_eq!(item.balance.incoming, 8);
+    println!(
+        "Те же остатки {} — при минимуме 22 заказ {} ед., при минимуме 23 заказ {} ед.",
+        item.sku, exact_box.units_to_order, next_box.units_to_order
+    );
+
     let second_item = WarehouseItem {
         sku: String::from("AUD-015"),
         balance: StockBalance {

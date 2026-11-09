@@ -58,11 +58,22 @@ fn main() {
     assert_eq!(transmission, [180, 200]);
     println!("Окно для передачи — {transmission:?}");
 
+    // У края копируем только фактическую длину окна.
+    let mut tail_transmission = [0_u8; 2];
+    let tail_window = pixel_window(adjusted_pixels, 3, tail_transmission.len());
+    let copied_pixels = tail_window.len();
+    tail_transmission[..copied_pixels].copy_from_slice(tail_window);
+    assert_eq!(copied_pixels, 1);
+    assert_eq!(tail_transmission, [90, 0]);
+    println!("Неполное окно — {tail_transmission:?}, подготовлено пикселей — {copied_pixels}");
+
     let mut truncated = [7_u8, 4];
     assert!(!adjust_preview(&mut truncated, 200));
     let mut wrong_length = [7_u8, 5, 12, 180, 250, 90, 0];
-    assert!(!adjust_preview(&mut wrong_length, 200));
+    let wrong_length_accepted = adjust_preview(&mut wrong_length, 200);
+    assert!(!wrong_length_accepted);
     assert_eq!(wrong_length, [7, 5, 12, 180, 250, 90, 0]);
+    println!("Некорректная длина — принят {wrong_length_accepted}, пакет — {wrong_length:?}");
 
     let mut empty_packet = [7_u8, 0, 255];
     assert!(adjust_preview(&mut empty_packet, 200));

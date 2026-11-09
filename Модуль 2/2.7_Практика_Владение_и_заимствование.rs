@@ -170,10 +170,38 @@ fn main() {
     assert_eq!(estimated_bytes, 9_000_000);
     println!("1. Заявка проверена, оценка — {estimated_bytes} байт");
 
+    let mut additional_job = ExportJob {
+        id: 18,
+        destination: String::new(),
+        duration_seconds: 30,
+        bytes_per_second: 100_000,
+    };
+    let additional_bytes = estimated_export_bytes(&additional_job);
+    let has_destination = has_export_destination(&additional_job);
+    assert_eq!(additional_bytes, 3_000_000);
+    assert!(!has_destination);
+    println!(
+        "1. Заявка {} — оценка {additional_bytes} байт, путь указан {has_destination}",
+        additional_job.id
+    );
+
     let previous = replace_destination(&mut job, String::from("exports/archive/lesson-02.mp4"));
     assert_eq!(previous, "exports/standard/lesson-02.mp4");
     assert_eq!(job.destination, "exports/archive/lesson-02.mp4");
     println!("2. Путь изменён с {previous} на {}", job.destination);
+
+    let previous_empty = replace_destination(
+        &mut additional_job,
+        String::from("exports/archive/lesson-03.mp4"),
+    );
+    assert!(previous_empty.is_empty());
+    assert!(has_export_destination(&additional_job));
+    println!(
+        "2. Первый путь заявки {} — {}, прежний путь пустой — {}",
+        additional_job.id,
+        additional_job.destination,
+        previous_empty.is_empty()
+    );
 
     let queued = enqueue_export(job);
     assert_eq!(queued.job.id, 17);
@@ -181,6 +209,20 @@ fn main() {
     println!("3. В очереди заявка {}", queued.job.id);
     // Владение заявкой передано в queued.
     // println!("{}", job.destination);
+
+    let additional_queued = enqueue_export(additional_job);
+    assert_eq!(additional_queued.job.id, 18);
+    assert_eq!(additional_queued.estimated_bytes, additional_bytes);
+    assert_eq!(
+        additional_queued.job.destination,
+        "exports/archive/lesson-03.mp4"
+    );
+    println!(
+        "3. В очереди заявка {} — {} байт для {}",
+        additional_queued.job.id,
+        additional_queued.estimated_bytes,
+        additional_queued.job.destination
+    );
 
     let mut quota = StorageQuota {
         limit_bytes: 10_000_000,
@@ -202,6 +244,16 @@ fn main() {
     assert_eq!(invalid_quota.reserved_bytes, 2);
     println!("4. В квоте зарезервировано {} байт", quota.reserved_bytes);
 
+    let exact_reserve = reserve_bytes(&mut quota, 500_000);
+    let extra_byte = reserve_bytes(&mut quota, 1);
+    assert!(exact_reserve);
+    assert!(!extra_byte);
+    assert_eq!(quota.reserved_bytes, quota.limit_bytes);
+    println!(
+        "4. Ровно до лимита — {exact_reserve}, ещё один байт — {extra_byte}, резерв — {} байт",
+        quota.reserved_bytes
+    );
+
     let mut notice = DispatchNotice {
         incident_code: String::from("INC-42"),
         message: String::new(),
@@ -213,16 +265,23 @@ fn main() {
     assert_eq!(notice.message, "Проверить инцидент INC-42");
     println!("5. Уведомление — {}", notice.message);
 
-    let compressed_name = {
+    let mut revised_notice = notice.clone();
+    revised_notice.incident_code = String::from("INC-43");
+    revised_notice.priority = 0;
+    prepare_notice(&mut revised_notice);
+    assert_eq!(revised_notice.message, "Проверить инцидент INC-43");
+    println!("5. После смены номера — {}", revised_notice.message);
+
+    let (compressed_name, plain_name) = {
         let stem = String::from("course-lesson-02");
-        archive_name(stem, true)
+        let compressed = archive_name(stem.clone(), true);
+        let plain = archive_name(stem, false);
+        (compressed, plain)
     };
     assert_eq!(compressed_name, "course-lesson-02.tar.gz");
-    assert_eq!(
-        archive_name(String::from("course-lesson-02"), false),
-        "course-lesson-02.tar"
-    );
+    assert_eq!(plain_name, "course-lesson-02.tar");
     println!("6. Имя архива — {compressed_name}");
+    println!("6. Имя без сжатия из того же блока — {plain_name}");
     // Временная строка освобождается при выходе из блока.
     // Обращение к ссылке после блока компилятор отклоняет.
     // let invalid_name = {
@@ -242,11 +301,19 @@ fn main() {
         test_notice.priority
     );
 
-    fs::create_dir_all("target/ownership_practice").expect("Не удалось создать папку квитанций");
-    let receipt_path = format!(
-        "target/ownership_practice/receipt-{}.txt",
-        std::process::id()
+    notice.priority = 4;
+    let zero_priority_test = make_test_notice(&revised_notice);
+    assert_eq!(priority_before, 3);
+    assert_eq!(test_notice.priority, 2);
+    assert_eq!(zero_priority_test.priority, 0);
+    println!(
+        "7. После повышения приоритета — снимок {priority_before}, рабочий {}, тестовый {}, нижняя граница {}",
+        notice.priority, test_notice.priority, zero_priority_test.priority
     );
+
+    fs::create_dir_all("target/ownership_practice").expect("Не удалось создать папку квитанций");
+    let process_id = std::process::id();
+    let receipt_path = format!("target/ownership_practice/receipt-{process_id}.txt");
     let file = File::create(&receipt_path).expect("Не удалось создать квитанцию");
     write_export_receipt(file, queued);
     // Открытый файл передан функции записи.
@@ -257,4 +324,19 @@ fn main() {
         "Заявка — 17\nПуть — exports/archive/lesson-02.mp4\nОценка — 9000000 байт\n"
     );
     println!("8. Квитанция записана в {receipt_path}");
+
+    let additional_receipt_path = format!(
+        "target/ownership_practice/receipt-{process_id}-{}.txt",
+        additional_queued.job.id
+    );
+    let additional_file =
+        File::create(&additional_receipt_path).expect("Не удалось создать вторую квитанцию");
+    write_export_receipt(additional_file, additional_queued);
+    let additional_receipt = fs::read_to_string(&additional_receipt_path)
+        .expect("Не удалось прочитать вторую квитанцию");
+    assert_eq!(
+        additional_receipt,
+        "Заявка — 18\nПуть — exports/archive/lesson-03.mp4\nОценка — 3000000 байт\n"
+    );
+    println!("8. Вторая квитанция записана в {additional_receipt_path}");
 }

@@ -37,8 +37,20 @@ fn main() {
         .expect("После блока отчёт должен быть доступен");
     println!("После выхода из блока следующая операция получила блокировку.");
 
-    // drop закрывает второй файл здесь, до конца функции main.
-    drop(next_writer);
+    let locked_writer = next_writer;
+    let independent_writer = open_for_append(&report_path);
+    let conflict = independent_writer
+        .try_lock()
+        .expect_err("Перемещение файла не должно освобождать блокировку");
+    assert_eq!(io::Error::from(conflict).kind(), io::ErrorKind::WouldBlock);
+    println!("После перемещения дескриптора блокировка сохраняется.");
+
+    drop(locked_writer);
+    independent_writer
+        .try_lock()
+        .expect("После закрытия перемещённого дескриптора отчёт должен быть доступен");
+    println!("После закрытия перемещённого дескриптора независимая операция получила блокировку.");
+    drop(independent_writer);
     assert!(!append_export_result(&report_path, false));
 
     // Ранний return тоже завершает доступ к файлу.

@@ -45,27 +45,43 @@ fn main() {
     limit_preview(preview_editor, 45, 100_000);
     assert_eq!(preview_editor.duration_seconds, 45);
     assert_eq!(preview_editor.bytes_per_second, 100_000);
+
+    // Через редактор временно получаем общий доступ для расчёта.
+    let bytes_from_editor = estimated_size(&*preview_editor);
+    assert_eq!(bytes_from_editor, 4_500_000);
     assert!(!preview_editor.captions);
 
     // После последнего использования preview_editor можно снова читать job.
     let preview_bytes = estimated_size(&job);
     assert_eq!(preview_bytes, 4_500_000);
+    assert_eq!(preview_bytes, bytes_from_editor);
 
     let mut available_bytes = 5_000_000;
     assert!(reserve_space(&mut available_bytes, preview_bytes));
     assert_eq!(available_bytes, 500_000);
-    assert!(!reserve_space(&mut available_bytes, 1_000_000));
+    let extra_reserved = reserve_space(&mut available_bytes, 1_000_000);
+    assert!(!extra_reserved);
     assert_eq!(available_bytes, 500_000);
 
     // Чтобы передать fixed_budget через &mut, его объявляют с mut.
     // let fixed_budget = 5_000_000_u64;
     // reserve_space(&mut fixed_budget, preview_bytes);
 
-    let plan = into_export_plan(job);
+    let mut plan = into_export_plan(job);
     assert_eq!(plan.required_bytes, preview_bytes);
     println!("Полная запись — {full_bytes} байт, предпросмотр — {preview_bytes} байт");
     println!("План экспорта — {}", plan.job.output_path);
     println!("Свободное место после резерва — {available_bytes} байт");
+    println!("Оценка через редактор — {bytes_from_editor} байт");
+    println!("Дополнительный резерв — принят {extra_reserved}, остаток {available_bytes} байт");
+
+    // Общий доступ к объёму и изменение пути относятся к разным полям.
+    let bytes_for_notice = &plan.required_bytes;
+    let staging_path = &mut plan.job.output_path;
+    staging_path.push_str(".part");
+    println!("Временный путь — {staging_path}, объём — {bytes_for_notice} байт");
+    assert_eq!(plan.job.output_path, "exports/course/preview.mp4.part");
+    assert_eq!(plan.required_bytes, preview_bytes);
 
     // Заявка теперь принадлежит плану.
     // println!("{}", job.output_path);

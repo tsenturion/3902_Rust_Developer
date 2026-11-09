@@ -43,6 +43,27 @@ fn main() {
     println!("Обычный режим по зонам — A {zone_a}, B {zone_b}, C {zone_c}");
     println!("Сниженный лимит по зонам — {reduced_totals:?}");
 
+    // Последняя зона доступна, а следующий индекс отклоняем до обращения к массиву.
+    for requested_zone in ZONE_COUNT - 1..=ZONE_COUNT {
+        if requested_zone < regular_totals.len() {
+            println!(
+                "Запрос индекса {requested_zone} — отложено {} заказов",
+                regular_totals[requested_zone]
+            );
+        } else {
+            println!("Запрос индекса {requested_zone} — зоны нет");
+        }
+    }
+
+    // При распаковке массива со String каждое имя получает свою строку.
+    let zone_names = [
+        String::from("Приёмка"),
+        String::from("Комплектация"),
+        String::from("Отгрузка"),
+    ];
+    let [receiving, packing, shipping] = zone_names;
+    println!("Названия зон после распаковки — {receiving}, {packing}, {shipping}");
+
     let additional_zones: [u16; 0] = [];
     assert!(additional_zones.is_empty());
 

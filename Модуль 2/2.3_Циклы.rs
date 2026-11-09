@@ -39,10 +39,10 @@ fn main() {
     println!("По объёму в одну партию входят {fits} фрагмента, остаток — {remaining_bytes} байт");
     println!("С учётом лимитов запланировано {scheduled} из {planned_clips} фрагментов");
     println!(
-        "Обычный запрос: запланировано {scheduled}, continue: пропущено резервных мест {skipped_reserved}, continue 'batches: партий завершено по лимиту байтов {ended_by_bytes}"
+        "Запрос {planned_clips} — запланировано {scheduled}, пропущено резервных мест {skipped_reserved}, партий завершено по лимиту байтов {ended_by_bytes}"
     );
     println!(
-        "Запрос 2, break 'batches: запланировано {early_scheduled}, continue: пропущено резервных мест {early_skipped_reserved}, continue 'batches: партий завершено по лимиту байтов {early_ended_by_bytes}"
+        "Запрос 2 — запланировано {early_scheduled}, пропущено резервных мест {early_skipped_reserved}, партий завершено по лимиту байтов {early_ended_by_bytes}"
     );
 
     // Условие while должно иметь тип bool.

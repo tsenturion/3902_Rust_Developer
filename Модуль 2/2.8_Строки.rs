@@ -22,7 +22,8 @@ fn main() {
     let (bytes, scalars) = text_metrics(&title);
     assert_eq!((bytes, scalars), (16, 9));
     assert_eq!("Я".as_bytes(), &[0xD0, 0xAF]);
-    assert_eq!(text_metrics("е\u{0301}"), (4, 2));
+    let accented_text = "е\u{0301}";
+    assert_eq!(text_metrics(accented_text), (4, 2));
 
     let view: &str = title.as_str();
     let prefix_for_list = utf8_prefix(view, 14);
@@ -56,11 +57,22 @@ fn main() {
     println!("Заголовок для списка — {compact_title}");
     println!("После нормализации — {bytes} байт и {scalars} значений char");
 
-    assert_eq!(utf8_prefix("Я🦀", 1), "");
-    assert_eq!(utf8_prefix("Я🦀", 2), "Я");
-    assert_eq!(utf8_prefix("Я🦀", 5), "Я");
-    assert_eq!(utf8_prefix("Я🦀", usize::MAX), "Я🦀");
+    let cyrillic_crab = "Я🦀";
+    let prefix_five = utf8_prefix(cyrillic_crab, 5);
+    let prefix_six = utf8_prefix(cyrillic_crab, 6);
+    assert_eq!(utf8_prefix(cyrillic_crab, 1), "");
+    assert_eq!(utf8_prefix(cyrillic_crab, 2), "Я");
+    assert_eq!(prefix_five, "Я");
+    assert_eq!(prefix_six, "Я🦀");
+    assert_eq!(utf8_prefix(cyrillic_crab, usize::MAX), "Я🦀");
     assert_eq!(utf8_prefix("", 10), "");
+    println!("Префикс «{cyrillic_crab}» при лимите 5 байт — «{prefix_five}»");
+    println!("Префикс «{cyrillic_crab}» при лимите 6 байт — «{prefix_six}»");
+
+    // Знак ударения занимает отдельные байты, хотя текст выглядит одной буквой.
+    let accented_prefix = utf8_prefix(accented_text, 2);
+    assert_eq!(accented_prefix, "е");
+    println!("Префикс «{accented_text}» при лимите 2 байта — «{accented_prefix}»");
 
     // Индекс 1 указывает внутрь двухбайтовой буквы Я.
     // let cyrillic = "Я";

@@ -160,4 +160,17 @@ fn main() {
         "Заказ {} — отгружено {} ед. {}, номер отслеживания {}",
         record.order_number, record.units, record.sku, record.tracking_code
     );
+
+    assert!(item.try_receive(4));
+    assert_eq!(item.balance.incoming, 0);
+    assert_eq!(item.available_units(), 4);
+    assert!(!item.try_receive(1));
+    assert_eq!(item.balance.on_hand, 12);
+    assert_eq!(item.balance.reserved, 8);
+    assert_eq!(item.balance.incoming, 0);
+    println!(
+        "Приняты оставшиеся 4 ед. поставки, следующая единица отклонена. Ожидается {}, свободно {}",
+        item.balance.incoming,
+        item.available_units()
+    );
 }

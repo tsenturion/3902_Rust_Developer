@@ -265,16 +265,29 @@ fn main() {
     assert_eq!(backup_capacity_gib(1_024, 1, 0), 1);
     assert_eq!(backup_capacity_gib(1_024, 1, 1), 2);
     assert_eq!(backup_capacity_gib(2_400, 0, 15), 0);
+    let exact_capacity = backup_capacity_gib(800, 1, 28);
+    let exceeded_capacity = backup_capacity_gib(801, 1, 28);
+    assert_eq!((exact_capacity, exceeded_capacity), (1, 2));
     println!("1. Хранилище резервных копий — {capacity} ГиБ");
+    println!(
+        "1. При запасе 28% — 800 МиБ требуют {exact_capacity} ГиБ, 801 МиБ требуют {exceeded_capacity} ГиБ"
+    );
 
     let (normalized, accepted) = rack_symbol('b');
     let (cyrillic, cyrillic_accepted) = rack_symbol('В');
     assert_eq!((normalized, accepted), ('B', true));
     assert_eq!(rack_symbol('7'), ('7', true));
     assert_eq!((cyrillic, cyrillic_accepted), ('В', false));
+    let (last_letter, last_letter_accepted) = rack_symbol('Z');
+    let (next_symbol, next_symbol_accepted) = rack_symbol('[');
+    assert_eq!((last_letter, last_letter_accepted), ('Z', true));
+    assert_eq!((next_symbol, next_symbol_accepted), ('[', false));
     println!(
         "2. Метка {normalized} принята, {cyrillic} (U+{:04X}) отклонена",
         u32::from(cyrillic)
+    );
+    println!(
+        "2. Соседние коды ASCII — «{last_letter}» {last_letter_accepted}, «{next_symbol}» {next_symbol_accepted}"
     );
 
     let reading = TemperatureReading {
@@ -282,20 +295,21 @@ fn main() {
         correction: -0.25,
         online: true,
     };
-    assert_eq!(
-        server_room_status(TemperatureReading {
-            celsius: 27.25,
-            ..reading
-        }),
-        TemperatureStatus::InRange
-    );
-    assert_eq!(
-        server_room_status(TemperatureReading {
-            celsius: 18.0,
-            ..reading
-        }),
-        TemperatureStatus::BelowLimit
-    );
+    let at_upper_limit = server_room_status(TemperatureReading {
+        celsius: 27.25,
+        ..reading
+    });
+    let at_lower_limit = server_room_status(TemperatureReading {
+        celsius: 18.25,
+        ..reading
+    });
+    let below_lower_limit = server_room_status(TemperatureReading {
+        celsius: 18.0,
+        ..reading
+    });
+    assert_eq!(at_upper_limit, TemperatureStatus::InRange);
+    assert_eq!(at_lower_limit, TemperatureStatus::InRange);
+    assert_eq!(below_lower_limit, TemperatureStatus::BelowLimit);
     assert_eq!(
         server_room_status(TemperatureReading {
             celsius: f64::NAN,
@@ -310,18 +324,36 @@ fn main() {
         }),
         TemperatureStatus::Unavailable
     );
+    assert_eq!(
+        server_room_status(TemperatureReading {
+            celsius: f64::MAX,
+            correction: f64::MAX,
+            online: true,
+        }),
+        TemperatureStatus::Unavailable
+    );
     let temperature_status = server_room_status(reading);
     assert_eq!(temperature_status, TemperatureStatus::AboveLimit);
     println!("3. Состояние датчика серверной — {temperature_status:?}");
+    println!(
+        "3. После поправки — 17,75 °C {below_lower_limit:?}, 18 °C {at_lower_limit:?}, 27 °C {at_upper_limit:?}"
+    );
 
     let charge = parking_charge(15 + 1_440 + 61);
     assert_eq!(charge, 760);
     assert_eq!(parking_charge(15), 0);
+    assert_eq!(parking_charge(16), 80);
     assert_eq!(parking_charge(75), 80);
     assert_eq!(parking_charge(76), 160);
     assert_eq!(parking_charge(15 + 8 * 60), 600);
     assert_eq!(parking_charge(15 + 1_440), 600);
+    let before_daily_limit = parking_charge(15 + 7 * 60);
+    let at_daily_limit = parking_charge(15 + 7 * 60 + 1);
+    assert_eq!((before_daily_limit, at_daily_limit), (560, 600));
     println!("4. Парковка за 25 ч 16 мин — {charge} руб.");
+    println!(
+        "4. Оплачиваемое время — 7 ч стоят {before_daily_limit} руб., 7 ч 1 мин стоят {at_daily_limit} руб."
+    );
 
     let sequence = packet_status(254, 1);
     assert_eq!(sequence, PacketStatus::Gap { missing: 2 });
@@ -330,21 +362,35 @@ fn main() {
     assert_eq!(packet_status(0, 127), PacketStatus::Gap { missing: 126 });
     assert_eq!(packet_status(0, 128), PacketStatus::OldOrAmbiguous);
     assert_eq!(packet_status(10, 9), PacketStatus::OldOrAmbiguous);
+    let last_gap = packet_status(250, 121);
+    let ambiguous = packet_status(250, 122);
+    assert_eq!(last_gap, PacketStatus::Gap { missing: 126 });
+    assert_eq!(ambiguous, PacketStatus::OldOrAmbiguous);
     println!("5. Пакет 1 после пакета 254 — {sequence:?}");
+    println!("5. После пакета 250 — пакет 121 даёт {last_gap:?}, пакет 122 даёт {ambiguous:?}");
 
     let (minutes, remaining) = drain_queue(950, 50, 200, 10);
     assert_eq!((minutes, remaining), (7, 0));
-    assert_eq!(drain_queue(950, 50, 200, 6), (6, 50));
+    let (short_minutes, short_remaining) = drain_queue(950, 50, 200, 6);
+    assert_eq!((short_minutes, short_remaining), (6, 50));
     assert_eq!(drain_queue(100, 200, 100, 3), (3, 400));
+    assert_eq!(drain_queue(100, 100, 100, 3), (3, 100));
     assert_eq!(drain_queue(0, 50, 200, 10), (0, 0));
     println!("6. Очередь — {minutes} мин обработки, остаток {remaining}");
+    println!("6. Короткое окно — за {short_minutes} мин осталось {short_remaining} заявок");
 
     let (retries, elapsed_ms) = retry_budget(250, 2_000, 3_750, 10);
     assert_eq!((retries, elapsed_ms), (4, 3_750));
     assert_eq!(retry_budget(500, 600, 1_700, 2), (2, 1_100));
     assert_eq!(retry_budget(500, 600, 499, 10), (0, 0));
     assert_eq!(retry_budget(0, 600, 1_700, 10), (0, 0));
+    assert_eq!(retry_budget(1_000, 600, 1_200, 10), (2, 1_200));
+    let (tight_retries, tight_elapsed_ms) = retry_budget(250, 2_000, 3_749, 10);
+    assert_eq!((tight_retries, tight_elapsed_ms), (3, 1_750));
     println!("7. Повторов — {retries}, суммарная пауза {elapsed_ms} мс");
+    println!(
+        "7. При бюджете 3749 мс — {tight_retries} повтора, суммарная пауза {tight_elapsed_ms} мс"
+    );
 
     let (measured, unavailable) = availability_hours(
         24,
@@ -360,12 +406,33 @@ fn main() {
         ),
         (0, 0)
     );
+    let (_, outage_in_maintenance) = availability_hours(
+        24,
+        HourWindow { start: 2, end: 4 },
+        HourWindow { start: 3, end: 4 },
+    );
+    let (_, outage_after_maintenance) = availability_hours(
+        24,
+        HourWindow { start: 2, end: 4 },
+        HourWindow { start: 4, end: 5 },
+    );
+    assert_eq!((outage_in_maintenance, outage_after_maintenance), (0, 1));
     println!("8. Мониторинг — {measured} ч учтено, {unavailable} ч недоступности");
+    println!(
+        "8. Граница работ — при сбое в 03:00 учтено {outage_in_maintenance} ч, при сбое в 04:00 учтён {outage_after_maintenance} ч"
+    );
 
     let slot = earliest_export_slot(3, 3, 1, HourWindow { start: 8, end: 18 });
     assert_eq!(slot, ExportSlot::Found { day: 2, hour: 8 });
+    let export_before_maintenance =
+        earliest_export_slot(1, 2, 1, HourWindow { start: 10, end: 13 });
+    let export_after_maintenance = earliest_export_slot(1, 3, 1, HourWindow { start: 10, end: 13 });
     assert_eq!(
-        earliest_export_slot(1, 3, 1, HourWindow { start: 10, end: 13 }),
+        export_before_maintenance,
+        ExportSlot::Found { day: 1, hour: 8 }
+    );
+    assert_eq!(
+        export_after_maintenance,
         ExportSlot::Found { day: 1, hour: 13 }
     );
     assert_eq!(
@@ -381,4 +448,7 @@ fn main() {
         ExportSlot::Unavailable
     );
     println!("9. Ближайшее окно экспорта — {slot:?}");
+    println!(
+        "9. При работах с 10:00 до 13:00 — 2 ч {export_before_maintenance:?}, 3 ч {export_after_maintenance:?}"
+    );
 }
